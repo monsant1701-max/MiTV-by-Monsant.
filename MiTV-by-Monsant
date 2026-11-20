@@ -1,0 +1,45 @@
+
+on:
+  push:
+    paths:
+      - "MiTV_by_Monsant_Android_IPTV_v0.4.zip"
+      - ".github/workflows/compilar-mitv.yml"
+  workflow_dispatch:
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar archivos del repositorio
+        uses: actions/checkout@v4
+
+      - name: Descomprimir proyecto MiTV
+        run: unzip -q MiTV_by_Monsant_Android_IPTV_v0.4.zip
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar Android 35
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+
+      - name: Compilar APK de prueba
+        working-directory: MiTV_by_Monsant_Android_IPTV_v0.4
+        run: gradle :app:assembleDebug --no-daemon
+
+      - name: Guardar APK para descarga
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiTV-debug-apk
+          path: MiTV_by_Monsant_Android_IPTV_v0.4/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
